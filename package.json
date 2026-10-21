@@ -1,0 +1,299 @@
+{
+  "name": "githeat",
+  "displayName": "GitHeat",
+  "description": "Git history heatmap for your repo: the most changed files, folders, code blocks and lines.",
+  "version": "0.1.0",
+  "publisher": "JonesJugHead",
+  "author": "JonesJugHead",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JonesJugHead/githeat.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JonesJugHead/githeat/issues"
+  },
+  "homepage": "https://github.com/JonesJugHead/githeat#readme",
+  "keywords": [
+    "git",
+    "heatmap",
+    "hotspots",
+    "churn",
+    "history",
+    "codelens"
+  ],
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "extensionDependencies": [
+    "vscode.git"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "githeat.refresh",
+        "title": "Recompute heatmap",
+        "category": "GitHeat",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "githeat.pickPeriod",
+        "title": "Change analyzed period",
+        "category": "GitHeat",
+        "icon": "$(calendar)"
+      },
+      {
+        "command": "githeat.pickMetric",
+        "title": "Change metric",
+        "category": "GitHeat",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "githeat.toggleLineHeat",
+        "title": "Show / hide line-by-line heat",
+        "category": "GitHeat",
+        "icon": "$(flame)"
+      },
+      {
+        "command": "githeat.toggleExplorerHeat",
+        "title": "Show / hide heat in the Explorer",
+        "category": "GitHeat"
+      },
+      {
+        "command": "githeat.showBlockCommits",
+        "title": "Block commits",
+        "category": "GitHeat"
+      },
+      {
+        "command": "githeat.toggleSort",
+        "title": "Sort by heat / by name",
+        "category": "GitHeat",
+        "icon": "$(list-ordered)"
+      },
+      {
+        "command": "githeat.openCommitDiff",
+        "title": "Show commit diff",
+        "category": "GitHeat"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "githeat",
+          "title": "GitHeat",
+          "icon": "media/activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "githeat": [
+        {
+          "id": "githeat.tree",
+          "name": "Tree",
+          "icon": "media/activity.svg"
+        },
+        {
+          "id": "githeat.hotspots",
+          "name": "Hottest files",
+          "icon": "media/activity.svg"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "githeat.tree",
+        "contents": "No git repository found in the workspace, or analysis in progress…"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "githeat.pickPeriod",
+          "when": "view == githeat.tree || view == githeat.hotspots",
+          "group": "navigation@1"
+        },
+        {
+          "command": "githeat.pickMetric",
+          "when": "view == githeat.tree || view == githeat.hotspots",
+          "group": "navigation@2"
+        },
+        {
+          "command": "githeat.toggleSort",
+          "when": "view == githeat.tree",
+          "group": "navigation@3"
+        },
+        {
+          "command": "githeat.refresh",
+          "when": "view == githeat.tree || view == githeat.hotspots",
+          "group": "navigation@4"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "githeat.toggleLineHeat",
+          "when": "resourceScheme == file",
+          "group": "navigation@99"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "githeat.showBlockCommits",
+          "when": "false"
+        },
+        {
+          "command": "githeat.openCommitDiff",
+          "when": "false"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "GitHeat",
+      "properties": {
+        "githeat.since": {
+          "type": "string",
+          "default": "6 months ago",
+          "markdownDescription": "Analyzed period, in `git --since` format (e.g. `3 months ago`, `2025-01-01`). Empty = the whole history."
+        },
+        "githeat.metric": {
+          "type": "string",
+          "enum": [
+            "commits",
+            "churn",
+            "authors"
+          ],
+          "enumDescriptions": [
+            "Number of commits touching the file",
+            "Lines added + deleted",
+            "Number of distinct authors"
+          ],
+          "default": "commits",
+          "description": "Metric used to color files and folders."
+        },
+        "githeat.exclude": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/package-lock.json",
+            "**/yarn.lock",
+            "**/pnpm-lock.yaml",
+            "**/composer.lock",
+            "**/*.min.js",
+            "**/*.map",
+            "**/dist/**",
+            "**/build/**"
+          ],
+          "description": "File globs ignored by the heatmap."
+        },
+        "githeat.excludeAuthors": {
+          "type": "string",
+          "default": "\\[bot\\]|dependabot|renovate",
+          "description": "Case-insensitive regex: commits whose author matches are ignored."
+        },
+        "githeat.explorer.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Color files and folders in the built-in Explorer."
+        },
+        "githeat.hotspots.limit": {
+          "type": "integer",
+          "default": 50,
+          "minimum": 1,
+          "maximum": 1000,
+          "description": "Number of files listed in the Hottest files view."
+        },
+        "githeat.lines.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show line-by-line heat in the editor."
+        },
+        "githeat.lines.background": {
+          "type": "boolean",
+          "default": false,
+          "description": "Also tint the line background (in addition to the gutter)."
+        },
+        "githeat.lines.maxCommits": {
+          "type": "integer",
+          "default": 1000,
+          "minimum": 10,
+          "description": "Maximum number of commits replayed per file for line-by-line heat. Lower it on very large histories."
+        },
+        "githeat.codeLens.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show stats above each function / class / method."
+        }
+      }
+    },
+    "colors": [
+      {
+        "id": "githeat.heat1",
+        "description": "Heat level 1 (warm)",
+        "defaults": {
+          "dark": "#4FA3E0",
+          "light": "#1F6FB2",
+          "highContrast": "#4FA3E0"
+        }
+      },
+      {
+        "id": "githeat.heat2",
+        "description": "Heat level 2",
+        "defaults": {
+          "dark": "#C9C94A",
+          "light": "#8A8A00",
+          "highContrast": "#C9C94A"
+        }
+      },
+      {
+        "id": "githeat.heat3",
+        "description": "Heat level 3",
+        "defaults": {
+          "dark": "#F0A030",
+          "light": "#B86E00",
+          "highContrast": "#F0A030"
+        }
+      },
+      {
+        "id": "githeat.heat4",
+        "description": "Heat level 4",
+        "defaults": {
+          "dark": "#F06A3A",
+          "light": "#C9431A",
+          "highContrast": "#F06A3A"
+        }
+      },
+      {
+        "id": "githeat.heat5",
+        "description": "Heat level 5 (burning)",
+        "defaults": {
+          "dark": "#FF3B5C",
+          "light": "#D0102F",
+          "highContrast": "#FF3B5C"
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package",
+    "test:core": "node ./out/core/selftest.js",
+    "dev": "tsc -p ./ && node scripts/dev.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.90.0",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.0.0",
+    "typescript": "^5.5.0"
+  }
+}

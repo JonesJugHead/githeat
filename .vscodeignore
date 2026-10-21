@@ -1,0 +1,10 @@
+.vscode/**
+src/**
+node_modules/**
+**/*.map
+**/*.ts
+tsconfig.json
+out/core/selftest.js
+.vscode-test/**
+out/test/**
+scripts/**
